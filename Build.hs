@@ -1,9 +1,20 @@
 #!/usr/bin/env runhaskell
 import Development.Shake
+import Development.Shake.FilePath
+
+cabalDeploy :: CmdResult b => FilePath -> Action b
+cabalDeploy dir = do
+  () <- cmd (Cwd dir) "cabal install --dependencies-only -j"
+  maybePwd <- getEnv "PWD"
+  let pwd = maybe "" id maybePwd
+  () <- cmd (Cwd dir) $ "cabal configure --prefix=" ++ (pwd </> "_build")
+  () <- cmd (Cwd dir) "cabal build"
+  () <- cmd (Cwd dir) "cabal copy"
+  cmd (Cwd dir) "cabal configure"
 
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
-  want ["_build/DailyFeeling-backend"]
+  want ["_build/bin/DailyFeeling-backend"]
 
   ["Backend/cabal.sandbox.config", "Backend/.cabal-sandbox"] &%> \_ -> do
     cmd (Cwd "Backend") "cabal sandbox init"
@@ -11,24 +22,16 @@ main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
   ["Frontend/cabal.sandbox.config", "Frontend/.cabal-sandbox"] &%> \_ -> do
     cmd (Cwd "Frontend") "cabal sandbox init"
 
-  "_build/DailyFeeling-frontend.jsexe" %> \out -> do
+  "_build/bin/DailyFeeling-frontend.jsexe" %> \_ -> do
     need ["Frontend/cabal.sandbox.config", "Frontend/.cabal-sandbox"]
-    () <- cmd (Cwd "Frontend") "cabal install --dependencies-only -j"
-    () <- cmd (Cwd "Frontend") "cabal build"
-    cmd "cp" "-r"
-      "Frontend/dist/build/DailyFeeling-frontend/DailyFeeling-frontend.jsexe"
-      "-T" out
+    cabalDeploy "Frontend"
 
-  "_build/DailyFeeling-backend" %> \out -> do
+  "_build/bin/DailyFeeling-backend" %> \_ -> do
     need ["Backend/cabal.sandbox.config", "Backend/.cabal-sandbox"
-         , "_build/DailyFeeling-frontend.jsexe"]
-    () <- cmd (Cwd "Backend") "cp" "-r" "../_build/DailyFeeling-frontend.jsexe"
+         , "_build/bin/DailyFeeling-frontend.jsexe"]
+    () <- cmd (Cwd "Backend") "cp" "-r" "../_build/bin/DailyFeeling-frontend.jsexe"
           "-T" "frontend"
-    () <- cmd (Cwd "Backend") "cabal install --dependencies-only -j"
-    () <- cmd (Cwd "Backend") "cabal build"
-    cmd "cp" "-r"
-      "Backend/dist/build/DailyFeeling-backend"
-      "-T" out
+    cabalDeploy "Backend"
 
   phony "clean" $ do
     () <- cmd (Cwd "Frontend") "cabal clean"
