@@ -13,6 +13,7 @@ category:            Web
 build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
+data-files:          frontend
 
 executable DailyFeeling-backend
   main-is:             Main.hs
@@ -21,5 +22,10 @@ executable DailyFeeling-backend
   build-depends:       base >=4.8 && <4.9
                      , servant
                      , servant-server
+                     , wai
+                     , warp
+                     , transformers
+                     , aeson
+                     , either
   -- hs-source-dirs:      
   default-language:    Haskell2010

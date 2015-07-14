@@ -1,2 +1,4 @@
+import Reflex.Dom
+
 main :: IO ()
-main = return ()
+main = mainWidget $ el "div" $ text "Hello, world!"

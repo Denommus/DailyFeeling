@@ -1,12 +1,9 @@
 #!/usr/bin/env runhaskell
 import Development.Shake
-import Development.Shake.Command
-import Development.Shake.FilePath
-import Development.Shake.Util
 
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
-  want ["_build/DailyFeeling-backend" <.> exe]
+  want ["_build/DailyFeeling-backend"]
 
   ["Backend/cabal.sandbox.config", "Backend/.cabal-sandbox"] &%> \_ -> do
     cmd (Cwd "Backend") "cabal sandbox init"
@@ -20,13 +17,24 @@ main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
     () <- cmd (Cwd "Frontend") "cabal build"
     cmd "cp" "-r"
       "Frontend/dist/build/DailyFeeling-frontend/DailyFeeling-frontend.jsexe"
-      out
+      "-T" out
 
-  "_build/DailyFeeling-backend" <.> exe %> \out -> do
+  "_build/DailyFeeling-backend" %> \out -> do
     need ["Backend/cabal.sandbox.config", "Backend/.cabal-sandbox"
          , "_build/DailyFeeling-frontend.jsexe"]
+    () <- cmd (Cwd "Backend") "cp" "-r" "../_build/DailyFeeling-frontend.jsexe"
+          "-T" "frontend"
     () <- cmd (Cwd "Backend") "cabal install --dependencies-only -j"
     () <- cmd (Cwd "Backend") "cabal build"
-    copyFile'
-      ("Backend/dist/build/DailyFeeling-backend/DailyFeeling-backend" <.> exe)
-      out
+    cmd "cp" "-r"
+      "Backend/dist/build/DailyFeeling-backend"
+      "-T" out
+
+  phony "clean" $ do
+    () <- cmd (Cwd "Frontend") "cabal clean"
+    () <- cmd (Cwd "Backend") "cabal clean"
+    removeFilesAfter "_build" ["//*"]
+
+  phony "run" $ do
+    need ["_build/DailyFeeling-backend"]
+    cmd (Cwd "Backend") "cabal run"
