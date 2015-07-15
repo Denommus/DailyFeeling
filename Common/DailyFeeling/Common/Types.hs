@@ -10,8 +10,9 @@ data Mood = Happy
 
 instance ToJSON Mood
 
-data Entry = Entry { mood :: Mood
-                   , name :: String
+data Entry = Entry { entryId     :: Integer
+                   , mood        :: Mood
+                   , name        :: String
                    , description :: String
                    } deriving (Generic)
 

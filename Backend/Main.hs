@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -8,12 +9,18 @@ import Network.Wai.Handler.Warp
 import Servant
 import Paths_DailyFeeling_backend
 import DailyFeeling.Common.Types
+import Data.List
+import Control.Monad.Trans.Either
 
 type API = "entries" :> Get '[JSON] [Entry]
            :<|> Raw
 
 entries :: [Entry]
-entries = [Entry Happy "Yuri" "Good day"]
+entries = [ Entry 1 Happy "Yuri" "Good day"
+          , Entry 2 Sad "" "Meh" ]
+
+entry :: Integer -> Maybe Entry
+entry i = find ((==i) . entryId) entries
 
 api :: Proxy API
 api = Proxy
