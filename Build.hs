@@ -17,10 +17,12 @@ main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
   want ["_build/bin/DailyFeeling-backend"]
 
   ["Backend/cabal.sandbox.config", "Backend/.cabal-sandbox"] &%> \_ -> do
-    cmd (Cwd "Backend") "cabal sandbox init"
+    () <- cmd (Cwd "Backend") "cabal sandbox init"
+    cmd (Cwd "Backend") "cabal sandbox add-source ../Common"
 
   ["Frontend/cabal.sandbox.config", "Frontend/.cabal-sandbox"] &%> \_ -> do
-    cmd (Cwd "Frontend") "cabal sandbox init"
+    () <- cmd (Cwd "Frontend") "cabal sandbox init"
+    cmd (Cwd "Frontend") "cabal sandbox add-source ../Common"
 
   "_build/bin/DailyFeeling-frontend.jsexe" %> \_ -> do
     need ["Frontend/cabal.sandbox.config", "Frontend/.cabal-sandbox"]

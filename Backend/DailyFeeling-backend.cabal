@@ -28,5 +28,6 @@ executable DailyFeeling-backend
                      , transformers
                      , aeson
                      , either
+                     , DailyFeeling-common
   -- hs-source-dirs:      
   default-language:    Haskell2010
