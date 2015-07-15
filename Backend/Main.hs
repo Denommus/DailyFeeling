@@ -13,6 +13,7 @@ import Data.List
 import Control.Monad.Trans.Either
 
 type API = "entries" :> Get '[JSON] [Entry]
+           :<|> "entries" :> Capture "i" Integer :> Get '[JSON] Entry
            :<|> Raw
 
 entries :: [Entry]
@@ -30,6 +31,7 @@ raw dir = serveDirectory dir
 
 server :: FilePath -> Server API
 server dir = return entries
+             :<|> (maybe (left $ err404 { errBody = "not found" }) return) . entry
              :<|> raw dir
 
 app :: FilePath -> Application
