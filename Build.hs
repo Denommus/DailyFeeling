@@ -41,5 +41,5 @@ main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
     removeFilesAfter "_build" ["//*"]
 
   phony "run" $ do
-    need ["_build/DailyFeeling-backend"]
+    need ["_build/bin/DailyFeeling-backend"]
     cmd (Cwd "Backend") "cabal run"
