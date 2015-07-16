@@ -9,8 +9,8 @@ import Servant
 import Paths_DailyFeeling_backend
 import DailyFeeling.Common.Types
 
-type API = "home" :> Raw
-           :<|> "entries" :> Get '[JSON] [Entry]
+type API = "entries" :> Get '[JSON] [Entry]
+           :<|> Raw
 
 entries :: [Entry]
 entries = [Entry Happy "Yuri" "Good day"]
@@ -22,8 +22,8 @@ raw :: FilePath -> Application
 raw dir = serveDirectory dir
 
 server :: FilePath -> Server API
-server dir = raw dir
-             :<|> return entries
+server dir = return entries
+             :<|> raw dir
 
 app :: FilePath -> Application
 app dir = serve api $ server dir
