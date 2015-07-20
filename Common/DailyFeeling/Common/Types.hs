@@ -9,6 +9,7 @@ data Mood = Happy
           | Sad deriving (Generic)
 
 instance ToJSON Mood
+instance FromJSON Mood
 
 data Entry = Entry { entryId     :: Integer
                    , mood        :: Mood
@@ -17,3 +18,4 @@ data Entry = Entry { entryId     :: Integer
                    } deriving (Generic)
 
 instance ToJSON Entry
+instance FromJSON Entry
