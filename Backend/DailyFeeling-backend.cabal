@@ -29,5 +29,7 @@ executable DailyFeeling-backend
                      , aeson
                      , either
                      , DailyFeeling-common
+                     , groundhog
+                     , groundhog-sqlite
   -- hs-source-dirs:      
   default-language:    Haskell2010
