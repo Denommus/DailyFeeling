@@ -1,6 +1,7 @@
 #!/usr/bin/env runhaskell
 import Development.Shake
 import Development.Shake.FilePath
+import Data.List
 
 cabalDeploy :: CmdResult b => FilePath -> Action b
 cabalDeploy dir = do
@@ -12,17 +13,22 @@ cabalDeploy dir = do
   () <- cmd (Cwd dir) "cabal copy"
   cmd (Cwd dir) "cabal configure"
 
+cabalSandbox :: FilePath -> Action ()
+cabalSandbox dir = do
+  () <- cmd (Cwd dir) "cabal sandbox init"
+  (Stdout out) <- cmd (Cwd dir) "cabal sandbox list-sources" :: Action (Stdout String)
+  let hasCommon = null $ filter (isInfixOf "Common") $ lines out
+  if hasCommon
+    then cmd (Cwd dir) "cabal sandbox add-source ../Common"
+    else return ()
+
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
   want ["_build/bin/DailyFeeling-backend"]
 
-  ["Backend/cabal.sandbox.config", "Backend/.cabal-sandbox"] &%> \_ -> do
-    () <- cmd (Cwd "Backend") "cabal sandbox init"
-    cmd (Cwd "Backend") "cabal sandbox add-source ../Common"
+  ["Backend/cabal.sandbox.config", "Backend/.cabal-sandbox"] &%> \_ -> cabalSandbox "Backend"
 
-  ["Frontend/cabal.sandbox.config", "Frontend/.cabal-sandbox"] &%> \_ -> do
-    () <- cmd (Cwd "Frontend") "cabal sandbox init"
-    cmd (Cwd "Frontend") "cabal sandbox add-source ../Common"
+  ["Frontend/cabal.sandbox.config", "Frontend/.cabal-sandbox"] &%> \_ -> cabalSandbox "Frontend"
 
   "_build/bin/DailyFeeling-frontend.jsexe" %> \_ -> do
     need ["Frontend/cabal.sandbox.config", "Frontend/.cabal-sandbox"]
