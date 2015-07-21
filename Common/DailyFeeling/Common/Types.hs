@@ -6,16 +6,15 @@ import Data.Aeson
 
 data Mood = Happy
           | Normal
-          | Sad deriving (Generic)
+          | Sad deriving (Generic, Show)
 
 instance ToJSON Mood
 instance FromJSON Mood
 
-data Entry = Entry { entryId     :: Integer
-                   , mood        :: Mood
+data Entry = Entry { mood        :: Mood
                    , name        :: String
                    , description :: String
-                   } deriving (Generic)
+                   } deriving (Generic, Show)
 
 instance ToJSON Entry
 instance FromJSON Entry
