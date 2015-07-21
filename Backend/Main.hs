@@ -16,6 +16,8 @@ import Paths_DailyFeeling_backend
 import DailyFeeling.Common.Types
 import Control.Monad.Trans.Either
 import Control.Monad.IO.Class
+import Database.Groundhog.Core
+import Database.Groundhog.Generic
 import Database.Groundhog.Sqlite
 import Database.Groundhog.TH
 
@@ -23,23 +25,29 @@ type API = "entries" :> Get '[JSON] [Entry]
            :<|> "entries" :> ReqBody '[JSON] Entry :> Post '[JSON] Entry
            :<|> Raw
 
+instance PersistField Mood where
+  persistName _ = "Mood"
+  toPersistValues = primToPersistValue
+  fromPersistValues = primFromPersistValue
+  dbType _ _ = DbTypePrimitive DbString False Nothing Nothing
+
+instance PrimitivePersistField Mood where
+  toPrimitivePersistValue p a = toPrimitivePersistValue p $ show a
+  fromPrimitivePersistValue p x = read $ fromPrimitivePersistValue p x
+
 mkPersist defaultCodegenConfig [groundhog|
-- entity: Mood
 - entity: Entry
 |]
 
 entries :: Sqlite -> EitherT ServantErr IO [Entry]
 entries sql = do
-  result <- flip runDbConn sql $ select (NameField /=. ("" :: String))
-  return $ result
+  result <- flip runDbConn sql $ selectAll
+  return $ map snd result
 
 newEntry :: Sqlite -> Entry -> EitherT ServantErr IO Entry
 newEntry sql new = do
   flip runDbConn sql $ insert new
   return new
-
--- entry :: Integer -> Maybe Entry
--- entry i = find ((==i) . entryId) entries
 
 api :: Proxy API
 api = Proxy
