@@ -32,13 +32,18 @@ buildFeelingRequest entry = XhrRequest
                  , _xhrRequestConfig_sendData = Just . BS.toString . encode $ entry
                  }
 
+combineDyn3 :: (Reflex t, MonadHold t m) =>
+               (a -> b -> c -> d)
+               -> Dynamic t a -> Dynamic t b -> Dynamic t c -> m (Dynamic t d)
+combineDyn3 f a b c = combineDyn f a b >>= flip (combineDyn ($)) c
+
 feelingInput :: MonadWidget t m => m ()
 feelingInput = do
   n <- fmap _textInput_value $ el "div" $ text "Name (optional): " >> textInput def
   m <- fmap _dropdown_value  $ el "div" $ text "Mood: " >> dropdown Happy (constDyn moodMap) def
   d <- fmap _textArea_value  $ el "div" $ text "Reason: " >> textArea def
   buttonEvent <- button "Save"
-  entry <- combineDyn Entry m n >>= flip (combineDyn ($)) d
+  entry <- combineDyn3 Entry m n d
   let entryE = tag (current entry) buttonEvent
   performRequestAsync $ buildFeelingRequest <$> entryE
   return ()
