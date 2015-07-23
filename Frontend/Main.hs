@@ -1,3 +1,4 @@
+import Control.Monad.IO.Class
 import Data.Time.Clock
 import Reflex.Dom
 import DailyFeeling.Common.Types
@@ -21,18 +22,18 @@ feelingTable feelings = do
         el "td" $ text $ show . mood $ feeling
         el "td" $ text $ description feeling
 
-getFeelings :: (MonadWidget t m) => UTCTime -> m (Event t [Entry])
-getFeelings currTime = do
+getFeelings :: (MonadWidget t m) => m (Event t [Entry])
+getFeelings = do
+  currTime <- liftIO getCurrentTime
   t <- tickLossy 1 currTime
   entries <- getAndDecode $ const "/entries" <$> t
   return $ maybe [] id <$> entries
 
 main :: IO ()
 main = do
-  currTime <- getCurrentTime
   mainWidget $ do
     feelingInput
-    entriesEvent <- getFeelings currTime
+    entriesEvent <- getFeelings
     entries <- holdDyn [] entriesEvent
     dyn =<< mapDyn feelingTable entries
     return ()
