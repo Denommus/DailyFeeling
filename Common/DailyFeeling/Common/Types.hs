@@ -6,7 +6,7 @@ import Data.Aeson
 
 data Mood = Happy
           | Normal
-          | Sad deriving (Generic, Show, Read)
+          | Sad deriving (Generic, Show, Read, Ord, Eq)
 
 instance ToJSON Mood
 instance FromJSON Mood
